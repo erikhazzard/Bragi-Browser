@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Bragi - Browser - Usage Example</title>
+
+    <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+
+</head>
+<body>
+    Open up your console
+
+<script src='dist/bragi.js'></script>
+<script>
+    // Bragi is defined globally here since this example does not use 
+    // CommonJS or RequireJS
+    assert(typeof BRAGI !== undefined);
+
+    BRAGI.log('group1', 'Hello world');
+
+
+    // Configuring Bragi - Groups
+    BRAGI.options.groupsEnabled = [ 'group1', 'group2' ];
+    BRAGI.log('group1', 'I am logged');
+    BRAGI.log('group2', 'I am logged');
+    BRAGI.log('group3', 'I am not');
+
+</script>
+
+</body>
+</html>
