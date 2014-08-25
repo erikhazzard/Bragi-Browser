@@ -1,7 +1,7 @@
 # Bragi : Javascript Logger - Browser
 ![Bragi](https://s3.amazonaws.com/vasir-assets/bragi/bragi-log-browser.gif)
 
-** This is for the browser. [View the NodeJS version](https://github.com/enoex/Bragi-Node)
+**This is for the browser. [View the NodeJS version](https://github.com/enoex/Bragi-Node)**
 
 *NOTE : This is an early release and the API is subject to change. This is designed for Chrome and some features (e.g., color) will not work in all browsers. The API is likely to change. Improvements and pull requests are welcome. [View the post which describes the purpose behind this library and some of its features](http://vasir.net/blog/development/how-logging-made-me-a-better-developer)*
 
