@@ -1,6 +1,6 @@
 {
   "name": "bragi-browser",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Javascript logging framework for the browser",
   "main": "lib/bragi.js",
   "author": "Erik Hazzard <enoex1@gmail.com>",
