@@ -215,7 +215,7 @@ var SYMBOLS = require('./bragi/symbols');
         //   all other parameters are objects or strings that will be formatted
         //   into the message
         //
-        var groupsEnabled, groupsDisabled, currentTransport;
+        var groupsEnabled, currentTransport;
         var transportFuncsToCall = [];
 
         // Check if this can be logged or not. All transports must be checked as
@@ -268,14 +268,20 @@ var SYMBOLS = require('./bragi/symbols');
         // a remote host, etc.
         // ------------------------------
         var loggedObject = {};
-        
+
+        var isStrict = (function() { return !this; })();
+
         // Caller info
         var caller = 'global scope';
-        if(loggerLog.caller && loggerLog.caller.name){
-            caller = loggerLog.caller.name;
-        } else if((loggerLog.caller+'').indexOf('function ()') === 0){
-            caller = 'anonymous function'; 
-        } 
+
+        console.log(">>>>>>>>>", isStrict, loggerLog.caller);
+        if(isStrict){
+            if(loggerLog.caller && loggerLog.caller.name){
+                caller = loggerLog.caller.name;
+            } else if((loggerLog.caller+'').indexOf('function ()') === 0){
+                caller = 'anonymous function'; 
+            } 
+        }
 
         // Setup properties on the loggedObject based on passed in properties
         // ----------------------------------

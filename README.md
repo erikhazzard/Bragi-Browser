@@ -27,7 +27,7 @@ BRAGI.log('groupname', 'message');
 ```
 
 ## Browserify / CommonJS
-If using Browserify, install this with NPM: `npm install Bragi-Browser`. Then, you can 
+If using Browserify, install this with NPM: `npm install bragi-browser`. Then, you can 
 
 ```javascript
 var logger = require('bragi');
