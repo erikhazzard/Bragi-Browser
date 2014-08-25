@@ -1,7 +1,7 @@
 # Bragi : Javascript Logger - Browser
-![Bragi](http://s3.amazonaws.com/vasir-assets/bragi/bragi-log-small.gif)
+![Bragi](https://s3.amazonaws.com/vasir-assets/bragi/bragi-log-browser.gif)
 
-*NOTE : This is an early release and the API is subject to change. Improvements and pull requests are welcome. [View the post which describes the purpose behind this library and some of its features](http://vasir.net/blog/development/how-logging-made-me-a-better-developer)*
+*NOTE : This is an early release and the API is subject to change. This is the first pass at a browser implementation, and this repo and Bragi-Node are likely to merge. Improvements and pull requests are welcome. [View the post which describes the purpose behind this library and some of its features](http://vasir.net/blog/development/how-logging-made-me-a-better-developer)*
 
 Bragi is javascript logging library with colors, custom log levels, and server reporting functionality. Bragi allows you to write log messages that you can leave in your code, and allows you to specify what logs get output to the console.
 
@@ -15,45 +15,50 @@ This repository is for the Web Browser version of Bragi. [Access the NodeJS vers
 
 Pre-built Bragi files are located in `dist`. Bragi supports CommonJS, RequireJS, or just including the script in your code. 
 
-```javascript
-// If using CommonJS
-var logger = require('bragi');
-```
 
+## Base usage (without CommonJS / Browserify or RequireJS)
 If CommonJS or RequireJS are not used, when including Bragi a global `BRAGI` object will be exposed globally.
 
-Next, log something:
-
 ```javascript
-// If included with CommonJS / RequireJS
-logger.log('groupname', 'Hello world');
-
 // If exposed globally
 BRAGI.log('groupname', 'message');
 ```
 
+## Browserify / CommonJS
+If using Browserify, install this with NPM: `npm install Bragi-Browser`. Then, you can 
+
+```javascript
+var logger = require('bragi');
+logger.log('group', 'hello there');
+```
+
+## RequireJS
+You can require it and use it like other modules (use bragi.js or bragi.min.js).
+
+
+# Logging
 Calls to `log` take in two required parameters: `groupName` and `message`. Any additional parameters (such as object info) will be included in the log message also. For instance:
     
 ```javascript
-logger.log('groupname', 'Here is some user info', { name: 'Ironman', weaknesses: null });
+BRAGI.log('groupname', 'Here is some user info', { name: 'Ironman', weaknesses: null });
 ```
 
 One of the benefits Bragi provides is the ability to supply arbitrary group names and namespace for groups (separated by a colon). For instance:
 
 ```javascript
-logger.log('userController:fetchInfo', 'fetching user information...');
+BRAGI.log('userController:fetchInfo', 'fetching user information...');
 ```
 
 Because the groupname is a string, you can dynamically create it:
     
 ```javascript
-logger.log('userController:fetchInfo:ironman', 'fetching user information...');
+BRAGI.log('userController:fetchInfo:ironman', 'fetching user information...');
 ```
 
 With group names, we're able to filter messages by groups and their namespaces, or by a regular expression (e.g., we have the ability to show ALL logs for the `ironman` user)
 
 ## Log Groups (log levels)
-Unlike other libraries where log levels are linear, in Bragi log levels are discrete and arbitrary. You can have nested log levels, e.g.: `logger.log("group1:subgroup1", "Log message %O", {key: 42});`. 
+Unlike other libraries where log levels are linear, in Bragi log levels are discrete and arbitrary. You can have nested log levels, e.g.: `BRAGI.log("group1:subgroup1", "Log message %O", {key: 42});`. 
 
 By having arbitrary log levels, you can have fine grain control over what log messages are outputted. 
 
@@ -64,15 +69,10 @@ By having arbitrary log levels, you can have fine grain control over what log me
 `groupsDisabled`: An {Array} of {String}s {RegExp} regular expressions, specifying which groups to exclude from logging. This is useful if you want to log everything *except* some particular groups.
 
 **Examples**:
-
-```javascript
-var logger = require('bragi');
-```
-
 Now, let's enable all `group1:subgroup1` logs and any log message that contains the user ironman, denoted by `:ironman`:
 
 ```javascript
-logger.options.groupsEnabled = [ 'group1:subgroup1', '.*:ironman' ]
+BRAGI.options.groupsEnabled = [ 'group1:subgroup1', '.*:ironman' ]
 ```
 
 The this would log all `group1:subgroup1` logs, including nested subgroups: for instance, `group1:subgroup1:subsubgroup1`. 
@@ -82,8 +82,8 @@ The this would log all `group1:subgroup1` logs, including nested subgroups: for 
 To specify a blacklist, use `groupsDisabled`. This would log everything *except* `group1`:
 
 ```javascript
-logger.options.groupsEnabled = true; 
-logger.options.groupsDisabled = ['group1'];
+BRAGI.options.groupsEnabled = true; 
+BRAGI.options.groupsDisabled = ['group1'];
 ```
 
 ### Built in log types
@@ -92,15 +92,12 @@ Currently only two built in log types exist: `error` and `warn`. These types can
 Note that if you want to include these, you'll need to specify "error" and "warn" in the `groupsEnabled` array.
 
 ### Examples
-![Log example](http://s3.amazonaws.com/vasir-assets/bragi/bragi-log-still-small.png)
-In the `examples` folder, there are various examples of calling and configuring Bragi.
+See `example.html` for example usage.
 
 ## Util
-Bragi provides a couple utility functions to help you write logs messages that have strong visual cues.
+Bragi provides a utility functions to help you write logs messages that have strong visual cues.
 
-* `logger.util.symbols` : This is a dictionary of UTF-8 symbols - such as `success` (a green ✔︎) and  `error` (a red '✘'). All the symbols can be viewed in `lib/bragi/symbols.js`
-
-* `logger.util.print( message, color )` : This is function takes in a message {String} and color {String} and returns the message string in the passed in color.
+* `BRAGI.util.symbols` : This is a dictionary of UTF-8 symbols - such as `success` (a green ✔︎) and  `error` (a red '✘'). All the symbols can be viewed in `lib/bragi/symbols.js`
 
 # Configuration
 
@@ -108,10 +105,8 @@ Bragi provides a couple utility functions to help you write logs messages that h
 To configure bragi, require it then set the properties defined in the `options` object. For instance:
 
 ```javascript
-var logger = require('bragi');
-logger.options.PROPERTY = VALUE;
+BRAGI.options.PROPERTY = VALUE;
 ```
-
 
 The available options are:
 
@@ -122,31 +117,29 @@ The available options are:
 
 # Output - Transports
 
-The web browser version of Bragi supports logging to Console and sending logs to a remote host.  Other possible transports could include writing logs to LocalStorage or IndexedDB
+The web browser version of Bragi currently supports logging to Console and storing History. Coming soon is the ability to send the file to remote hosts.  Other possible transports could include writing logs to LocalStorage or IndexedDB
 
 ## Changing Transports
 
-Currently, you can use `logger.transports.empty();` to remove all transports.
+Currently, you can use `BRAGI.transports.empty();` to remove all transports.
 
-To add a transport, use `logger.transports.add( new logger.transportClasses.Transport( {} ) )` (where Transport is a transport, found in `lib/bragi/transports/`).
+To add a transport, use `BRAGI.transports.add( new BRAGI.transportClasses.Transport( {} ) )` (where Transport is a transport, found in `lib/bragi/transports/`).
 
-Currently available transports are `Console`, `ConsoleJSON`, `History`, and `File`. Future transports include sending data to a remote host (e.g., Graylog).
-
-See `examples/example-json.js` for an example of removing the default transport and adding a new one.  
+Currently available transports are `Console` and `History`
 
 ## Configuring Transports
 
 All transports take in, at a minimum, `groupsEnabled` and `groupsDisabled`. This allows transport level configuration of what log messages to use. By default, they will use whatever is set on the global logger object. This is useful, for instance, if you want to send *all* logs to a remote host but only want to show error logs in the console output.
 
-To configure a transport that is already added to the logger, you can use `logger.transports.get("TransportName");`. Note that this returns an {Array} of transports (this is because you may have multiple transports of the same type - e.g., it's possible to have multiple File transports).
+To configure a transport that is already added to the logger, you can use `BRAGI.transports.get("TransportName");`. Note that this returns an {Array} of transports (this is because you may have multiple transports of the same type - e.g., it's possible to have multiple File transports).
 
 ### Setting properties 
 To set properties, you can:
 
-1. access a transport object individually (e.g., `logger.transports.get('console')[0].PROPERTY= VALUE`) or 
+1. access a transport object individually (e.g., `BRAGI.transports.get('console')[0].PROPERTY= VALUE`) or 
 2. set options for ALL returned transports by calling `.property( key, value )`. 
 
-For instance, to show the stack trace in the console output: `logger.transports.get('console').property('showStackTrace', true);`
+For instance, to show the stack trace in the console output: `BRAGI.transports.get('console').property('showStackTrace', true);`
 
 If only a key is passed in, it acts as getter (and returns an array of values). If key and value are passed in, it will set the property for *each* returned transports. NOTE: This is useful when you have a single transport, just be aware that if you use this on a file transport and change the output path, and you have multiple files transports, all file transports would log to that file.
 
@@ -162,7 +155,7 @@ See `examples/example-simple.json` (or `test/test.js`) for example usage.
 
 All transports must be functions that containg a prototype a prototype `name` property and `log` function. The transport function itself must take in an options object and allow `groupsEnabled` and `groupsDisabled` to be passed into it. This allows transport level white listing / black listing of log groups (for instance, maybe the console should only capture `group1`, but the file transport should capture *all* log messages)
 
-The `log` function expects a `loggedObject` to be passed into it, which is an object created after log() is called. It will have a `meta` property, along with a `message` (the log message itself), a `group` (what group the log message belongs to), and a `properties` key containing any additional arguments passed into logger.log() calls.
+The `log` function expects a `loggedObject` to be passed into it, which is an object created after log() is called. It will have a `meta` property, along with a `message` (the log message itself), a `group` (what group the log message belongs to), and a `properties` key containing any additional arguments passed into BRAGI.log() calls.
 
 NOTE: See `examples/example-json.js` to see what a loggedObject looks like.
 
