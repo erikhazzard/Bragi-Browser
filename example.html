@@ -45,10 +45,19 @@
         }
     })();
 
+
+    // History transport demonstration (stores all messages by type)
+    BRAGI.transports.add( new BRAGI.transportClasses.History( {} ) );
+
     (function(){
         BRAGI.log('error', 'This is an error message');
         BRAGI.log('warn', 'Danger danger');
     })();
+
+    // Now, history can be accessed via:
+    var historyGroupName = 'error'; // or whatever group name you want
+    BRAGI.log('historyExample', historyGroupName + ' history: %O', BRAGI.transports.get('History')[0].history[historyGroupName]);
+
 </script>
 
 </body>

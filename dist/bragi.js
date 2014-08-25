@@ -350,7 +350,7 @@ var SYMBOLS = require('./bragi/symbols');
     return BRAGI;
 }));
 
-},{"./bragi/canLog":4,"./bragi/styles":5,"./bragi/symbols":6,"./bragi/transports":7,"./bragi/transports/Transports":8,"util":12}],2:[function(require,module,exports){
+},{"./bragi/canLog":5,"./bragi/styles":6,"./bragi/symbols":7,"./bragi/transports":8,"./bragi/transports/Transports":9,"util":13}],2:[function(require,module,exports){
 /* =========================================================================
  *
  * Console
@@ -617,7 +617,76 @@ TransportConsole.prototype.log = function transportConsoleLog( loggedObject ){
 
 module.exports = TransportConsole;
 
-},{"../styles":5,"../symbols":6}],3:[function(require,module,exports){
+},{"../styles":6,"../symbols":7}],3:[function(require,module,exports){
+/* =========================================================================
+ *
+ * History
+ *      Logs to console, but just outputs raw JSON
+ *
+ * ========================================================================= */
+function TransportHistory ( options ){
+    options = options || {};
+
+    this.groupsEnabled = options.groupsEnabled;
+    this.groupsDisabled = options.groupsDisabled;
+
+    // Store *everything*?
+    this.storeEverything = false;
+    if(options.storeEverything === true){
+        this.storeEverything = true;
+
+        // Also, log *everything*
+        this.groupsEnabled = true;
+    }
+
+    // Set history size per log group
+    //  NOTE: if historySize is 0 or false, it has no limit
+    this.historySize = options.historySize !== undefined ? options.historySize : 200;
+
+    // History object
+    this.history = {};
+
+    return this;
+}
+
+// Prototype properties (All these must exist to be a valid transport)
+// --------------------------------------
+TransportHistory.prototype.name = 'History';
+
+TransportHistory.prototype.log = function transportHistoryLog( loggedObject ){
+    // log
+    //  Logs a passed object to the console
+    //
+    //  params:
+    //      loggedObject: {Object} the log object to log
+    //      options : {Object} the logger options
+    //
+    // Setup message for console output
+    // ------------------------------
+    // store the key by the first root group
+    var group = loggedObject.group.split(':')[0];
+
+    // Keep track of message
+    if(this.history[group] === undefined){
+        this.history[group] = [];
+    }
+
+    // store the key by the first root group
+    this.history[group].push(loggedObject);
+
+    // Trim history
+    if(this.historySize > 0 && 
+       this.history[group].length > this.historySize
+    ){
+        this.history[group].shift();
+    }
+
+    return this;
+};
+
+module.exports = TransportHistory;
+
+},{}],4:[function(require,module,exports){
 /* =========================================================================
  *
  * index.js
@@ -625,8 +694,9 @@ module.exports = TransportConsole;
  *
  * ========================================================================= */
 module.exports.Console = require('./Console');
+module.exports.History = require('./History');
 
-},{"./Console":2}],4:[function(require,module,exports){
+},{"./Console":2,"./History":3}],5:[function(require,module,exports){
 /* =========================================================================
  *
  * canLog
@@ -712,7 +782,7 @@ function canLog(group, groupsEnabled, groupsDisabled){
 
 module.exports = canLog;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /* =========================================================================
  *
  *  styles
@@ -750,7 +820,7 @@ module.exports = {
     }
 };
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* =========================================================================
  *
  *  symbols
@@ -784,7 +854,7 @@ module.exports = {
     atom: '⚛'
 };
 
-},{"./styles":5}],7:[function(require,module,exports){
+},{"./styles":6}],8:[function(require,module,exports){
 /* =========================================================================
  *  transports
  *      Handles all transports
@@ -800,7 +870,7 @@ for(var file in files){
 
 module.exports = transports;
 
-},{"./Transports/index":3}],8:[function(require,module,exports){
+},{"./Transports/index":4}],9:[function(require,module,exports){
 /* =========================================================================
  *
  * Transports
@@ -941,7 +1011,7 @@ Transports.prototype.empty = function empty (){
 
 module.exports = Transports;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -966,7 +1036,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1031,14 +1101,14 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1628,4 +1698,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":11,"_process":10,"inherits":9}]},{},[1]);
+},{"./support/isBuffer":12,"_process":11,"inherits":10}]},{},[1]);
