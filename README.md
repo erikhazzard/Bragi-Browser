@@ -1,7 +1,9 @@
 # Bragi : Javascript Logger - Browser
 ![Bragi](https://s3.amazonaws.com/vasir-assets/bragi/bragi-log-browser.gif)
 
-*NOTE : This is an early release and the API is subject to change. This is the first pass at a browser implementation, and this repo and Bragi-Node are likely to merge. Improvements and pull requests are welcome. [View the post which describes the purpose behind this library and some of its features](http://vasir.net/blog/development/how-logging-made-me-a-better-developer)*
+** This is for the browser. [View the NodeJS version](https://github.com/enoex/Bragi-Node)
+
+*NOTE : This is an early release and the API is subject to change. This is designed for Chrome and some features (e.g., color) will not work in all browsers. The API is likely to change. Improvements and pull requests are welcome. [View the post which describes the purpose behind this library and some of its features](http://vasir.net/blog/development/how-logging-made-me-a-better-developer)*
 
 Bragi is javascript logging library with colors, custom log levels, and server reporting functionality. Bragi allows you to write log messages that you can leave in your code, and allows you to specify what logs get output to the console.
 
