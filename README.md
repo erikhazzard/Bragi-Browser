@@ -30,7 +30,7 @@ BRAGI.log('groupname', 'message');
 If using Browserify, install this with NPM: `npm install bragi-browser`. Then, you can 
 
 ```javascript
-var logger = require('bragi');
+var logger = require('bragi-browser');
 logger.log('group', 'hello there');
 ```
 
