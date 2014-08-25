@@ -1,11 +1,8 @@
 {
   "name": "bragi-browser",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Javascript logging framework for the browser",
   "main": "lib/bragi.js",
-  "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test -R dot"
-  },
   "author": "Erik Hazzard <enoex1@gmail.com>",
   "contributors": [
     "Nils Schlomann <nils@five.com>"
