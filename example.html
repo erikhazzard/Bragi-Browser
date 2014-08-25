@@ -15,10 +15,18 @@
 <script>
     // Bragi is defined globally here since this example does not use 
     // CommonJS or RequireJS
-    assert(typeof BRAGI !== undefined);
+
+    // Store the stack trace - NOTE: In production, this should probably be
+    // set to false to avoid any slowdowns
+    // Enable everything
+    BRAGI.options.storeStackTrace = true;
+    BRAGI.transports.get('Console').property('storeStackTrace', true)
+
+    //// to disable:
+    //BRAGI.options.storeStackTrace = false;
+    //BRAGI.transports.get('Console').property('storeStackTrace', true)
 
     BRAGI.log('group1', 'Hello world');
-
 
     // Configuring Bragi - Groups
     BRAGI.options.groupsEnabled = [ 'group1', 'group2' ];
@@ -26,6 +34,21 @@
     BRAGI.log('group2', 'I am logged');
     BRAGI.log('group3', 'I am not');
 
+    // Enable all logs
+    BRAGI.options.groupsEnabled = true;
+
+    // Note: when logged from a function, the name of the function will be shown
+    // log some groups
+    (function logFromFunc (){
+        for(var i=1; i<30; i++){
+            BRAGI.log('group' + i, 'This is a test for colors. props: %O', {answer: 42});
+        }
+    })();
+
+    (function(){
+        BRAGI.log('error', 'This is an error message');
+        BRAGI.log('warn', 'Danger danger');
+    })();
 </script>
 
 </body>

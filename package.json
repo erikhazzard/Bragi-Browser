@@ -8,7 +8,7 @@
   },
   "author": "Erik Hazzard <enoex1@gmail.com>",
   "contributors": [
-    "Nils Schlomann <nils@five.com>" 
+    "Nils Schlomann <nils@five.com>"
   ],
   "repository": {
     "type": "git",
@@ -23,6 +23,9 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "brfs": "^1.2.0",
+    "browserify": "^5.10.1",
+    "uglify-js": "^2.4.15"
   },
   "devDependencies": {
     "mocha": "*",
