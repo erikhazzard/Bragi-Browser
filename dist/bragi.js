@@ -216,7 +216,7 @@ var SYMBOLS = require('./bragi/symbols');
         //   all other parameters are objects or strings that will be formatted
         //   into the message
         //
-        var groupsEnabled, currentTransport;
+        var groupsEnabled, groupsDisabled, currentTransport;
         var transportFuncsToCall = [];
 
         // Check if this can be logged or not. All transports must be checked as
@@ -356,10 +356,184 @@ var SYMBOLS = require('./bragi/symbols');
     if(!(typeof define === 'function' && define.amd)) {
         window.BRAGI = LOGGER;
     }
-    return BRAGI;
+    return LOGGER;
 }));
 
-},{"./bragi/canLog":5,"./bragi/styles":6,"./bragi/symbols":7,"./bragi/transports":8,"./bragi/transports/Transports":9,"util":13}],2:[function(require,module,exports){
+},{"./bragi/canLog":2,"./bragi/styles":3,"./bragi/symbols":4,"./bragi/transports":5,"./bragi/transports/Transports":8,"util":13}],2:[function(require,module,exports){
+/* =========================================================================
+ *
+ * canLog
+ *
+ *      Function which takes in a gropu and groupsEnabled and returns a {Boolean}
+ *      indicating if message can be logged
+ *
+ * ========================================================================= */
+function canLog(group, groupsEnabled, groupsDisabled){ 
+    // Check if a passed in group {string} can be logged based on the passed in
+    // groupsEnabled ({Array} or {Boolean}). 
+    // If the message cannot be logged, return false - otherwise, return true
+    //
+    //  NOTE: errors will always be logged unless explictly disabled
+
+    if(groupsEnabled === undefined){
+        groupsEnabled = true;
+    }
+    var i,len;
+
+    // by default, allow logging
+    var canLogIt = true;
+
+    // First, check for allowed groups (whitelist)
+    // ----------------------------------
+    if(groupsEnabled === true){
+        canLogIt = true;
+
+    } else if(groupsEnabled === false || groupsEnabled === null){
+        // Don't ever log if logging is disabled
+        canLogIt = false;
+
+    } else if(groupsEnabled instanceof Array){
+        // if an array of log levels is set, check it
+        canLogIt = false;
+
+        for(i=0, len=groupsEnabled.length; i<len; i++){
+            // the current groupsEnabled will be a string we check group against;
+            // for instance,
+            //      if group is "group1:group2", and if the current log level
+            //      is "group1:group3", it will NOT match; but, "group1:group2" 
+            //      would match.
+            //          Likewise, "group1:group2:group3" WOULD match
+
+            // If the current item is a regular expression, run the regex
+            if(groupsEnabled[i] instanceof RegExp){
+                if(groupsEnabled[i].test(group)){
+                    canLogIt = true;
+                    break;
+                }
+            } else if(group.indexOf(groupsEnabled[i]) === 0){
+                canLogIt = true;
+                break;
+            }
+        }
+    } 
+
+    // set error and warn to be always on unless explictly disabled
+    if(group.indexOf('error') === 0 || group.indexOf('warn') === 0){
+        canLogIt = true;
+    }
+
+    // Second, check disallowed groups (blacklist)
+    if(groupsDisabled && groupsDisabled instanceof Array){
+        for(i=0, len=groupsDisabled.length; i<len; i++){
+            // Same logic as checking groupsEnabled, just the inverse
+            //
+            // If the current item is a regular expression, run the regex
+            if(groupsDisabled[i] instanceof RegExp){
+                if(groupsDisabled[i].test(group)){
+                    canLogIt = false;
+                    break;
+                }
+            } else if(group.indexOf(groupsDisabled[i]) === 0){
+                canLogIt = false;
+                break;
+            }
+        }
+    }
+
+    return canLogIt;
+}
+
+module.exports = canLog;
+
+},{}],3:[function(require,module,exports){
+/* =========================================================================
+ *
+ *  styles
+ *      Defines styles / colors for logger
+ *
+ * ========================================================================= */
+module.exports = {
+    colors: {
+        white: '\x1B[37m',
+        grey: '\x1B[90m',
+        gray: '\x1B[90m',
+        black: '\x1B[30m',
+        blue: '\x1B[34m',
+        cyan: '\x1B[36m',
+        green: '\x1B[32m',
+        magenta: '\x1B[35m',
+        red: '\x1B[31m',
+        yellow: '\x1B[33m',
+        reset: '\033[0m'
+    },
+    styles: {
+        blink: '\x1B[49;5;8m',
+        underline: '\x1B[4m', 
+        bold: '\x1B[1m'
+    },
+    backgrounds: {
+        white: '\x1B[47m',
+        black: '\x1B[40m',
+        blue: '\x1B[44m',
+        cyan: '\x1B[46m',
+        green: '\x1B[42m',
+        magenta: '\x1B[45m',
+        red: '\x1B[41m',
+        yellow: '\x1B[43m'
+    }
+};
+
+},{}],4:[function(require,module,exports){
+/* =========================================================================
+ *
+ *  symbols
+ *      Defines special symbols used by logger
+ *
+ * ========================================================================= */
+var STYLES = require('./styles');
+
+module.exports = {
+    success: STYLES.colors.green + '✔︎ ' + STYLES.colors.reset,
+    error: STYLES.colors.red + '✘ ' + STYLES.colors.reset,
+    warn: STYLES.colors.yellow + '⚑ ' + STYLES.colors.reset,
+    arrow: '➤ ',
+    star: '☆ ',
+    box: STYLES.colors.yellow + '☐ ' + STYLES.colors.reset,
+    boxSuccess: STYLES.colors.green + '☑︎ ' + STYLES.colors.reset,
+    boxError: STYLES.colors.red + '☒ ' + STYLES.colors.reset,
+    circle: '◯ ',
+    circleFilled: '◉ ',
+    asterisk: '✢',
+    floral: '❧',
+    snowflake: '❄︎',
+    fourDiamond:'❖',
+    spade: '♠︎',
+    club: '♣︎',
+    heart: '♥︎',
+    diamond: '♦︎',
+    queen: '♛',
+    rook: '♜',
+    pawn: '♟',
+    atom: '⚛'
+};
+
+},{"./styles":3}],5:[function(require,module,exports){
+/* =========================================================================
+ *  transports
+ *      Handles all transports
+ *
+ * ========================================================================= */
+var files = require('./transports/index');
+
+var transports = {};
+
+for(var file in files){ 
+    transports[file] = files[file];
+}
+
+module.exports = transports;
+
+},{"./transports/index":9}],6:[function(require,module,exports){
 /* =========================================================================
  *
  * Console
@@ -626,7 +800,7 @@ TransportConsole.prototype.log = function transportConsoleLog( loggedObject ){
 
 module.exports = TransportConsole;
 
-},{"../styles":6,"../symbols":7}],3:[function(require,module,exports){
+},{"../styles":3,"../symbols":4}],7:[function(require,module,exports){
 /* =========================================================================
  *
  * History
@@ -695,191 +869,7 @@ TransportHistory.prototype.log = function transportHistoryLog( loggedObject ){
 
 module.exports = TransportHistory;
 
-},{}],4:[function(require,module,exports){
-/* =========================================================================
- *
- * index.js
- *      Exports all available transports
- *
- * ========================================================================= */
-module.exports.Console = require('./Console');
-module.exports.History = require('./History');
-
-},{"./Console":2,"./History":3}],5:[function(require,module,exports){
-/* =========================================================================
- *
- * canLog
- *
- *      Function which takes in a gropu and groupsEnabled and returns a {Boolean}
- *      indicating if message can be logged
- *
- * ========================================================================= */
-function canLog(group, groupsEnabled, groupsDisabled){ 
-    // Check if a passed in group {string} can be logged based on the passed in
-    // groupsEnabled ({Array} or {Boolean}). 
-    // If the message cannot be logged, return false - otherwise, return true
-    //
-    //  NOTE: errors will always be logged unless explictly disabled
-
-    if(groupsEnabled === undefined){
-        groupsEnabled = true;
-    }
-    var i,len;
-
-    // by default, allow logging
-    var canLogIt = true;
-
-    // First, check for allowed groups (whitelist)
-    // ----------------------------------
-    if(groupsEnabled === true){
-        canLogIt = true;
-
-    } else if(groupsEnabled === false || groupsEnabled === null){
-        // Don't ever log if logging is disabled
-        canLogIt = false;
-
-    } else if(groupsEnabled instanceof Array){
-        // if an array of log levels is set, check it
-        canLogIt = false;
-
-        for(i=0, len=groupsEnabled.length; i<len; i++){
-            // the current groupsEnabled will be a string we check group against;
-            // for instance,
-            //      if group is "group1:group2", and if the current log level
-            //      is "group1:group3", it will NOT match; but, "group1:group2" 
-            //      would match.
-            //          Likewise, "group1:group2:group3" WOULD match
-
-            // If the current item is a regular expression, run the regex
-            if(groupsEnabled[i] instanceof RegExp){
-                if(groupsEnabled[i].test(group)){
-                    canLogIt = true;
-                    break;
-                }
-            } else if(group.indexOf(groupsEnabled[i]) === 0){
-                canLogIt = true;
-                break;
-            }
-        }
-    } 
-
-    // set error and warn to be always on unless explictly disabled
-    if(group.indexOf('error') === 0 || group.indexOf('warn') === 0){
-        canLogIt = true;
-    }
-
-    // Second, check disallowed groups (blacklist)
-    if(groupsDisabled && groupsDisabled instanceof Array){
-        for(i=0, len=groupsDisabled.length; i<len; i++){
-            // Same logic as checking groupsEnabled, just the inverse
-            //
-            // If the current item is a regular expression, run the regex
-            if(groupsDisabled[i] instanceof RegExp){
-                if(groupsDisabled[i].test(group)){
-                    canLogIt = false;
-                    break;
-                }
-            } else if(group.indexOf(groupsDisabled[i]) === 0){
-                canLogIt = false;
-                break;
-            }
-        }
-    }
-
-    return canLogIt;
-}
-
-module.exports = canLog;
-
-},{}],6:[function(require,module,exports){
-/* =========================================================================
- *
- *  styles
- *      Defines styles / colors for logger
- *
- * ========================================================================= */
-module.exports = {
-    colors: {
-        white: '\x1B[37m',
-        grey: '\x1B[90m',
-        gray: '\x1B[90m',
-        black: '\x1B[30m',
-        blue: '\x1B[34m',
-        cyan: '\x1B[36m',
-        green: '\x1B[32m',
-        magenta: '\x1B[35m',
-        red: '\x1B[31m',
-        yellow: '\x1B[33m',
-        reset: '\033[0m'
-    },
-    styles: {
-        blink: '\x1B[49;5;8m',
-        underline: '\x1B[4m', 
-        bold: '\x1B[1m'
-    },
-    backgrounds: {
-        white: '\x1B[47m',
-        black: '\x1B[40m',
-        blue: '\x1B[44m',
-        cyan: '\x1B[46m',
-        green: '\x1B[42m',
-        magenta: '\x1B[45m',
-        red: '\x1B[41m',
-        yellow: '\x1B[43m'
-    }
-};
-
-},{}],7:[function(require,module,exports){
-/* =========================================================================
- *
- *  symbols
- *      Defines special symbols used by logger
- *
- * ========================================================================= */
-var STYLES = require('./styles');
-
-module.exports = {
-    success: STYLES.colors.green + '✔︎ ' + STYLES.colors.reset,
-    error: STYLES.colors.red + '✘ ' + STYLES.colors.reset,
-    warn: STYLES.colors.yellow + '⚑ ' + STYLES.colors.reset,
-    arrow: '➤ ',
-    star: '☆ ',
-    box: STYLES.colors.yellow + '☐ ' + STYLES.colors.reset,
-    boxSuccess: STYLES.colors.green + '☑︎ ' + STYLES.colors.reset,
-    boxError: STYLES.colors.red + '☒ ' + STYLES.colors.reset,
-    circle: '◯ ',
-    circleFilled: '◉ ',
-    asterisk: '✢',
-    floral: '❧',
-    snowflake: '❄︎',
-    fourDiamond:'❖',
-    spade: '♠︎',
-    club: '♣︎',
-    heart: '♥︎',
-    diamond: '♦︎',
-    queen: '♛',
-    rook: '♜',
-    pawn: '♟',
-    atom: '⚛'
-};
-
-},{"./styles":6}],8:[function(require,module,exports){
-/* =========================================================================
- *  transports
- *      Handles all transports
- *
- * ========================================================================= */
-var files = require('./Transports/index');
-
-var transports = {};
-
-for(var file in files){ 
-    transports[file] = files[file];
-}
-
-module.exports = transports;
-
-},{"./Transports/index":4}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /* =========================================================================
  *
  * Transports
@@ -1020,7 +1010,17 @@ Transports.prototype.empty = function empty (){
 
 module.exports = Transports;
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+/* =========================================================================
+ *
+ * index.js
+ *      Exports all available transports
+ *
+ * ========================================================================= */
+module.exports.Console = require('./Console');
+module.exports.History = require('./History');
+
+},{"./Console":6,"./History":7}],10:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
