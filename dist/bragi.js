@@ -94,7 +94,6 @@ var SYMBOLS = require('./bragi/symbols');
     LOGGER.util.__stack = function() {
         // Utility to get stack information
         var stack = null;
-
         try{
             var orig = Error.prepareStackTrace;
             Error.prepareStackTrace = function(_, stack) { return stack; };
@@ -102,7 +101,7 @@ var SYMBOLS = require('./bragi/symbols');
             Error.captureStackTrace(err, arguments.callee);
             stack = err.stack;
             Error.prepareStackTrace = orig;
-        } catch(e){}
+        } catch(e){ }
 
         return stack;
     };
@@ -271,12 +270,19 @@ var SYMBOLS = require('./bragi/symbols');
         var loggedObject = {};
         
         // Caller info
-        var caller = 'global scope';
-        if(loggerLog.caller && loggerLog.caller.name){
-            caller = loggerLog.caller.name;
-        } else if((loggerLog.caller+'').indexOf('function ()') === 0){
-            caller = 'anonymous function'; 
-        } 
+        var caller = null;
+
+        // Only capture caller if storeStackTrace is true.
+        // NOTE: This will not work in strict mode, as we cannot access
+        // the caller's name
+        if(LOGGER.options.storeStackTrace){
+            caller = 'global scope';
+            if(loggerLog.caller && loggerLog.caller.name){
+                caller = loggerLog.caller.name;
+            } else if((loggerLog.caller+'').indexOf('function ()') === 0){
+                caller = 'anonymous function'; 
+            } 
+        }
 
         // Setup properties on the loggedObject based on passed in properties
         // ----------------------------------
@@ -314,10 +320,11 @@ var SYMBOLS = require('./bragi/symbols');
         };
         loggedObject.unixTimestamp = new Date().getTime() / 1000;
 
+        var stack = false;
         if(LOGGER.options.storeStackTrace){
             // Store and use stack trace if set. Aides in developing, but adds
             // some overhead
-            var stack = LOGGER.util.__stack();
+            stack = LOGGER.util.__stack();
             // Currently, getting stack info via this method
             // is unsupported in many browsers
             if(stack){
@@ -604,18 +611,19 @@ function TransportConsole ( options ){
 
     // Display / meta related config options
     // ----------------------------------
-    // showStackTrace: {Boolean} provide the full stack trace? Disabled
-    // by default
-    this.showStackTrace = options.showStackTrace !== undefined ? options.showStackTrace: false;
-
     // Add a line break after the last thing sent?
     this.addLineBreak = options.addLineBreak !== undefined ? options.addLineBreak : false;
 
     // showMeta: {Boolean} Show the meta info (calling func, time, line num, etc)
+    //  `false` by default
     //  NOTE: This is primarily used only if you want to disable everything.
     //  If this is true and showStackTrace 
     //  options will be checked. If it is set to false, nothing will be shown
-    this.showMeta = options.showMeta !== undefined ? options.showMeta : true;
+    this.showMeta = options.showMeta !== undefined ? options.showMeta : false;
+
+    // showStackTrace: {Boolean} provide the full stack trace? Enabled by default,
+    // but will only be shown if meta is shown
+    this.showStackTrace = options.showStackTrace !== undefined ? options.showStackTrace: true;
 
     // Transport specific settings
     // ----------------------------------
@@ -760,7 +768,9 @@ TransportConsole.prototype.log = function transportConsoleLog( loggedObject ){
         metaConsoleMessage += new Date().toJSON() + ' \t \t ';
 
         // Show the name of the calling function
-        metaConsoleMessage += 'caller: ' + loggedObject.meta.caller + ' \t \t ';
+        if(loggedObject.meta.caller){
+            metaConsoleMessage += 'caller: ' + loggedObject.meta.caller + ' \t \t ';
+        }
 
         // For node, log line number and filename
         if(loggedObject.meta.file && loggedObject.meta.line ){
@@ -771,7 +781,7 @@ TransportConsole.prototype.log = function transportConsoleLog( loggedObject ){
         }
     }
 
-    if(this.showStackTrace && loggedObject.meta.trace){ 
+    if(this.showMeta && this.showStackTrace && loggedObject.meta.trace){ 
         // Show full stack trace if set
         // --------------------------
         metaConsoleMessage += '\n' + 
