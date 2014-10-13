@@ -1,0 +1,21 @@
+{
+  "name": "Bragi-Browser",
+  "version": "0.0.8",
+  "homepage": "https://github.com/enoex/Bragi-Browser",
+  "authors": [
+    "Erik <enoex1@gmail.com>"
+  ],
+  "description": "Group based Javascript logging framework for the browser",
+  "main": "dist/bragi.js",
+  "keywords": [
+    "logging"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

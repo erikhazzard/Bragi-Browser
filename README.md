@@ -70,6 +70,19 @@ By having arbitrary log levels, you can have fine grain control over what log me
 
 `groupsDisabled`: An {Array} of {String}s {RegExp} regular expressions, specifying which groups to exclude from logging. This is useful if you want to log everything *except* some particular groups.
 
+
+These properties can be accessed directly via `BRAGI.options.groupsEnabled` or `BRAGI.options.groupsDisabled`.
+
+
+### addGroup() and removeGroup()
+
+It's possible to modify the groups directly, but often it's simpler to call addGroup or removeGroup. You can pass in either a string or a regular expression. For instance:
+    
+    BRAGI.addGroup('myGroup');
+    BRAG.removeGroup('myGroup');
+
+Note that the first time `addGroup` is called, Bragi will no longer log everything by default. 
+
 **Examples**:
 Now, let's enable all `group1:subgroup1` logs and any log message that contains the user ironman, denoted by `:ironman`:
 
