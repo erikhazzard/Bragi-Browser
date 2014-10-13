@@ -181,6 +181,63 @@ var SYMBOLS = require('./bragi/symbols');
 
     // ----------------------------------
     //
+    // Group Addition / Removal Functions
+    //
+    // ----------------------------------
+    LOGGER.addGroup = function addGroup ( group ){
+        // Add a passed in group (either a {String} or {RegExp}) to the 
+        // groupsEnabled array
+        
+        // If groupsEnabled is true or false, turn it into an array
+        var groupsEnabled = LOGGER.options.groupsEnabled;
+
+        if(groupsEnabled === true || groupsEnabled === false){
+            LOGGER.options.groupsEnabled = groupsEnabled = [];
+        }
+
+        // Ensure it does not exist
+        var i=0, len=groupsEnabled.length;
+        for(i=0;i<len;i++){
+            if(groupsEnabled[i].toString() === group.toString()){
+                return LOGGER;
+            }
+        }
+
+        // Group wasn't found yet, add it
+        groupsEnabled.push( group );
+
+        return LOGGER;
+    };
+
+    LOGGER.removeGroup = function removeGroup ( group ){
+        // Takes in a group and removes all occurences of it from 
+        // groupsEnabled
+        
+        // If groupsEnabled is true or false, turn it into an array
+        var groupsEnabled = LOGGER.options.groupsEnabled;
+
+        if(groupsEnabled === true || groupsEnabled === false){
+            LOGGER.options.groupsEnabled = groupsEnabled = [];
+        }
+
+        // Ensure it does not exist
+        var i=0, len=groupsEnabled.length;
+        var groupsEnabledWithoutGroup = [];
+
+        for(i=0;i<len;i++){
+            if(groupsEnabled[i].toString() !== group.toString()){
+                groupsEnabledWithoutGroup.push( groupsEnabled[i] );
+            }
+        }
+
+        // update the groupsEnabled
+        LOGGER.options.groupsEnabled = groupsEnabledWithoutGroup;
+
+        return LOGGER;
+    };
+
+    // ----------------------------------
+    //
     // UTIL functions
     //
     // ----------------------------------
@@ -550,8 +607,18 @@ module.exports = transports;
 var STYLES = require('../styles');
 var SYMBOLS = require('../symbols');
 
-// ensure console exists
-if(!window.console){ window.console = function(){}; }
+// In < IE10 console is undefined unless the developer tools have at some 
+// point been opened in that tab. However, even after console and console.log
+// exist, typeof console.log still evaluate to object, not function, so
+// methods like .apply will cause errors
+if (window.console && window.console.log) {
+    if (typeof window.console.log !== 'function') {
+        window.console.log = function () {};
+    }
+} else {
+    window.console = {};
+    window.console.log = function () {};
+}
 
 // --------------------------------------
 //

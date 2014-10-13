@@ -1,6 +1,7 @@
 "use strict";
 // Bragi is defined globally here since this example does not use 
 // CommonJS or RequireJS
+var BRAGI = window.BRAGI;
 
 // Disable storing stack trace and hide meta info
 BRAGI.options.storeStackTrace = false; // NOTE: false by default. Will not work in strict mode if set to true
@@ -44,3 +45,19 @@ BRAGI.transports.add( new BRAGI.transportClasses.History( {} ) );
 var historyGroupName = 'error'; // or whatever group name you want
 BRAGI.log('historyExample', historyGroupName + ' history: %O', BRAGI.transports.get('History')[0].history[historyGroupName]);
 
+
+// --------------------------------------
+// addGroup example
+// --------------------------------------
+BRAGI.transports.remove('History'); // remove history transport
+BRAGI.options.groupsEnabled = []; // no groups
+
+BRAGI.log('test1', 'will NOT log');
+
+// enable test1 by called addGroup
+BRAGI.addGroup('test1');
+BRAGI.log('test1', 'WILL log');
+
+// then remove it
+BRAGI.removeGroup('test1');
+BRAGI.log('test1', 'will NOT log');
