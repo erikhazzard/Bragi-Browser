@@ -37,12 +37,13 @@ BRAGI.options.groupsEnabled = true;
 BRAGI.transports.add( new BRAGI.transportClasses.History( {} ) );
 
 (function(){
-    BRAGI.log('error', 'This is an error message');
-    BRAGI.log('warn', 'Danger danger');
+    BRAGI.error('error message', 'This is an error message');
+    BRAGI.warn('warning', 'Danger danger');
+    BRAGI.info('info message', 'This is an info message');
 })();
 
 // Now, history can be accessed via:
-var historyGroupName = 'error'; // or whatever group name you want
+var historyGroupName = 'error message'; // or whatever group name you want
 BRAGI.log('historyExample', historyGroupName + ' history: %O', BRAGI.transports.get('History')[0].history[historyGroupName]);
 
 

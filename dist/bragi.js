@@ -261,8 +261,9 @@ var SYMBOLS = require('./bragi/symbols');
     // LOG function
     //
     // ----------------------------------
-    LOGGER.log = function loggerLog(group, message){
-        // Main logging function. Takes in two (plus n) parameters:
+    var loggerLog = function (logType, group, message){
+        // Main logging function. Takes in three (plus n) parameters:
+        //   logType: {String} specifies logging type.
         //   group: {String} specifies the log level, or log group
         //
         //   message: {String} the message to log. The message must be a single
@@ -274,6 +275,7 @@ var SYMBOLS = require('./bragi/symbols');
         //
         var groupsEnabled, groupsDisabled, currentTransport;
         var transportFuncsToCall = [];
+        var transportLogFunc;
 
         // Check if this can be logged or not. All transports must be checked as
         // well, as they can override LOGGER.options.groupsEnabled 
@@ -317,8 +319,7 @@ var SYMBOLS = require('./bragi/symbols');
         // ----------------------------------
         // remove the group and message from the args array, so the new args array will
         // just be an array of the passed in arguments
-        var extraArgs = Array.prototype.slice.call(arguments, 2);
-        
+        var extraArgs = Array.prototype.slice.call(arguments, 3);
         // ----------------------------------
         // Build up a `loggedObject`, a structured object containing log 
         // information. It can be output to the console, to another file, to
@@ -411,10 +412,27 @@ var SYMBOLS = require('./bragi/symbols');
         // ----------------------------------
         // The loggedObject is setup now, call each of the transport log calls that
         // can be called
-        for(i=0, len=transportFuncsToCall.length; i<len; i++){
-            transportFuncsToCall[i].log.call( transportFuncsToCall[i], loggedObject );
+        var len = transportFuncsToCall.length;
+        for(i=0; i<len; i++){
+            // check if transport has method of given logType on use log()
+            transportLogFunc = typeof transportFuncsToCall[i][logType] !== 'undefined'
+                ? transportFuncsToCall[i][logType] : transportFuncsToCall[i].log;
+            transportLogFunc.call( transportFuncsToCall[i], loggedObject );
         }
     };
+
+    // create LOGGER methods for different log types 
+    var logTypes = ['log', 'warn', 'error', 'info'];
+    for (i = 0; i < logTypes.length; i++) {
+        (function() {
+            var logType = logTypes[i];
+            LOGGER[logType] = function(group, message) {
+                var args = Array.prototype.slice.call(arguments, 0);
+                args.unshift(logType);
+                loggerLog.apply(this, args);
+            }
+        }());
+    }
 
     // Expose this to the window
     if(!(typeof define === 'function' && define.amd)) {
@@ -611,13 +629,18 @@ var SYMBOLS = require('../symbols');
 // point been opened in that tab. However, even after console and console.log
 // exist, typeof console.log still evaluate to object, not function, so
 // methods like .apply will cause errors
-if (window.console && window.console.log) {
-    if (typeof window.console.log !== 'function') {
-        window.console.log = function () {};
+// Do this for all loggint type methods from array
+var logTypes = ['log', 'warn', 'error', 'info'];
+for (var i = 0; i < logTypes.length; i++) {
+    var logType = logTypes[i];
+    if (window.console && window.console[logType]) {
+        if (typeof window.console[logType] !== 'function') {
+            window.console[logType] = function () {};
+        }
+    } else {
+        window.console = {};
+        window.console[logType] = function () {};
     }
-} else {
-    window.console = {};
-    window.console.log = function () {};
 }
 
 // --------------------------------------
@@ -698,8 +721,9 @@ function TransportConsole ( options ){
 
     this._foundColors = [];
     this._colorDict = { 
-        error: BASE_CSS + 'background: #ff0000; color: #ffffff; font-style: bold; border: 4px solid #cc0000;',
-        warn: BASE_CSS + 'padding: 2px; background: #ffff00; color: #343434; font-style: bold; border: 4px solid #cccc00;'
+        error: BASE_CSS + 'background: #ff0000; color: #ffffff; font-style: bold; border: 1px solid #cc0000;',
+        warn: BASE_CSS + 'padding: 2px; background: #ffff00; color: #343434; font-style: bold; border: 1px solid #cccc00;',
+        info: BASE_CSS + 'padding: 2px; background: #0000ff; color: #ffffff; font-style: bold; border: 1px solid #cccc00;'
     };
 
     this.curSymbolIndex = 0;
@@ -707,7 +731,7 @@ function TransportConsole ( options ){
     return this;
 }
 
-TransportConsole.prototype.getColor = function getColor(group){
+TransportConsole.prototype.getColor = function getColor(logType, group){
     // Color Formatting
     // ----------------------------------
     // Returns the background color for a passed in log group
@@ -723,8 +747,8 @@ TransportConsole.prototype.getColor = function getColor(group){
     group = group.split(':')[0];
 
     // if a color exists for the passed in log group, use it
-    if(this._colorDict[group]){ 
-        return this._colorDict[group];
+    if(this._colorDict[logType]){
+        return this._colorDict[logType];
     }
 
     if(this._foundColors.length >= GROUP_COLORS.length){
@@ -772,7 +796,7 @@ TransportConsole.prototype.getColor = function getColor(group){
 // --------------------------------------
 TransportConsole.prototype.name = 'Console';
 
-TransportConsole.prototype.log = function transportConsoleLog( loggedObject ){
+var transportConsoleLog = function ( logType, loggedObject ){
     // log
     //  Logs a passed object to the console
     //
@@ -811,13 +835,13 @@ TransportConsole.prototype.log = function transportConsoleLog( loggedObject ){
     toLogArray.push(consoleMessage);
 
     if(this.showColors){
-        toLogArray.push(this.getColor(loggedObject.group));
+        toLogArray.push(this.getColor(logType, loggedObject.group));
     }
     toLogArray = toLogArray.concat(loggedObject.originalArgs);
 
     // Log it
     // ------------------------------
-    console.log.apply( console, toLogArray );
+    console[logType].apply( console, toLogArray );
 
     // ----------------------------------
     // Log meta info?
@@ -873,6 +897,19 @@ TransportConsole.prototype.log = function transportConsoleLog( loggedObject ){
     }
 
     return this;
+};
+
+TransportConsole.prototype.log = function(loggedObject) {
+    transportConsoleLog.apply(this, ['log', loggedObject]);
+};
+TransportConsole.prototype.warn = function(loggedObject) {
+    transportConsoleLog.apply(this, ['warn', loggedObject]);
+};
+TransportConsole.prototype.error = function(loggedObject) {
+    transportConsoleLog.apply(this, ['error', loggedObject]);
+};
+TransportConsole.prototype.info = function(loggedObject) {
+    transportConsoleLog.apply(this, ['info', loggedObject]);
 };
 
 module.exports = TransportConsole;
