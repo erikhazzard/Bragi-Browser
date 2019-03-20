@@ -21,7 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "brfs": "^1.2.0",
-    "browserify": "^5.10.1",
+    "browserify": "^16.2.3",
     "uglify-js": "^2.4.15"
   },
   "devDependencies": {
